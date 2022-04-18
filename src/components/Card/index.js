@@ -1,17 +1,18 @@
 import React from 'react';
+import styles from './Card.module.scss'
 
-const Card = () => {
+const Card = ({title, price, imageUrl}) => {
     return (
-        <div className="card">
-            <div className="favorite">
+        <div className={styles.card}>
+            <div className={styles.favorite}>
                 <img src="/img/unliked.svg" alt="unliked"/>
             </div>
-            <img width={133} height={112} src="/img/sneakers/2.jpg" />
-            <h5>Мужские кроссовки Nike Blazer Mid Suede</h5>
+            <img width={133} height={112} src={imageUrl} />
+            <h5>{title}</h5>
             <div className="d-flex justify-between align-center">
                 <div className="d-flex flex-column">
                     <span>Цена:</span>
-                    <b>12 999 руб.</b>
+                    <b>{price} руб.</b>
                 </div>
                 <button className="button">
                     <svg width="11" height="11" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
