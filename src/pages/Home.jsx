@@ -1,15 +1,33 @@
-import React from 'react';
+import React, {useContext} from 'react';
 import Card from "../components/Card";
+import {AppContext} from "../App";
 
 
 const Home = ({
                   searchValue,
                   setSearchValue,
-                  onChangeSeacrhInput,
-                  items,
+                  onChangeSearchInput,
                   onAddToCart,
                   onAddToFavorites,
+                  isLoading
               }) => {
+
+    const {items} = useContext(AppContext)
+
+    const renderItems = () => {
+        const filteredItems = items.filter(item => item.title.toLowerCase().includes(searchValue))
+        return (isLoading ? [...Array(8)] : filteredItems)
+            .map((item, index) => {
+                return <Card key={index}
+                             onPlus={(obj) => onAddToCart(obj)}
+                             onFavorite={(obj) => onAddToFavorites(obj)}
+
+                             loading={isLoading}
+                             {...item}
+                />
+            })
+    }
+
     return (
         <div className="content p-40">
             <div className="d-flex align-center mb-40 justify-between">
@@ -21,22 +39,14 @@ const Home = ({
                         className="clear cu-p"
                         src="/img/btn-remove.svg"
                         alt="Clear"/>}
-                    <input value={searchValue} onChange={onChangeSeacrhInput} placeholder="Поиск..." />
+                    <input value={searchValue} onChange={onChangeSearchInput} placeholder="Поиск..." />
 
                 </div>
             </div>
 
             <div className="d-flex flex-wrap">
 
-                {items.filter(item => item.title.toLowerCase().includes(searchValue))
-                    .map((sneakers, index) => {
-                        return <Card key={index}
-                                     onPlus={(obj) => onAddToCart(obj)}
-                                     onFavorite={(obj) => onAddToFavorites(obj)}
-                                     {...sneakers}
-                        />
-                    })}
-
+                {renderItems()}
 
             </div>
 

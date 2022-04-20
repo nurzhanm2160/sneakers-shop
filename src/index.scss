@@ -118,6 +118,11 @@ header {
       }
     }
 
+    &:disabled {
+      background: #bebebe;
+      cursor: default !important;
+    }
+
     img {
       position: absolute;
       right: 30px;
