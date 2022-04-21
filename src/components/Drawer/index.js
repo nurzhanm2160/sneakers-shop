@@ -1,24 +1,35 @@
 import React, {useContext, useState} from 'react';
-import Info from "./Info";
-import {AppContext} from "../App";
+import Info from "../Info";
+import {AppContext} from "../../App";
 import axios from "axios";
+import {useCart} from "../../hooks/useCart";
+import styles from './Drawer.module.scss'
 
-const Drawer = ({onClose, onDelete, items = []}) => {
-    const {cartItems, setCartItems} = useContext(AppContext);
+const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms))
+
+const Drawer = ({onClose, onDelete, items = [], opened}) => {
+    const { setCartItems } = useContext(AppContext);
     const [orderId, setOrderId] = useState(null)
     const [isOrderCompleted,setIsOrderCompleted] = useState(false)
-    const [isLoading, setIsLoading] = useState(true)
+    const [isLoading, setIsLoading] = useState(false)
+
+    const { totalPrice, cartItems } = useCart()
 
     const OrderHandler = async () => {
         try {
             setIsLoading(true)
             const {data} = await axios.post('http://625e17e46c48e8761ba4f15d.mockapi.io/orders', {
-                items: cartItems
+                items: cartItems,
             })
-            await axios.put('http://625e17e46c48e8761ba4f15d.mockapi.io/cart', [])
             setOrderId(data.id)
             setIsOrderCompleted(true);
             setCartItems([])
+
+            for (let i = 0; i < cartItems.length; i++){
+                const item = cartItems[i]
+                await axios.delete(`http://625e17e46c48e8761ba4f15d.mockapi.io/cart/${item.id}`)
+                await delay(1000)
+            }
         } catch (error) {
             alert('Не удалось создать заказ :(')
         }
@@ -26,8 +37,8 @@ const Drawer = ({onClose, onDelete, items = []}) => {
     }
 
     return (
-        <div className="overlay">
-            <div className="drawer">
+        <div className={`${styles.overlay} ${opened ? styles.overlayVisible : ''}`}>
+            <div className={styles.drawer}>
                 <h2 className="mb-30 d-flex justify-between">
                     Корзина
                     <img onClick={onClose} className="cu-p" src="/img/btn-remove.svg" alt="remove"/>
@@ -58,12 +69,12 @@ const Drawer = ({onClose, onDelete, items = []}) => {
                                 <li>
                                     <span>Итого:</span>
                                     <div></div>
-                                    <b>21 498 руб.</b>
+                                    <b>{totalPrice} руб.</b>
                                 </li>
                                 <li>
                                     <span>Налог 5%:</span>
                                     <div></div>
-                                    <b>1074 руб.</b>
+                                    <b>{totalPrice / 100 * 5} руб.</b>
                                 </li>
                             </ul>
                             <button disabled={isLoading} onClick={OrderHandler} className="greenButton">
