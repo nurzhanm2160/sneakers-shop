@@ -5,6 +5,7 @@ import axios from "axios";
 import Home from "./pages/Home";
 import {Route, Routes} from "react-router-dom";
 import Favorites from "./pages/Favorites";
+import Orders from "./pages/Orders";
 
 
 export const AppContext = createContext({})
@@ -35,15 +36,16 @@ function App() {
 
   const onAddToCart = async (obj) => {
     try {
-      if(cartItems.find((item) => Number(item.id) === Number(obj.id ))){
-        await axios.delete(`http://625e17e46c48e8761ba4f15d.mockapi.io/cart/${obj.id}`)
-        setCartItems(prev => prev.filter(item => Number(item.id) !== Number(obj.id)))
+      const findItem = cartItems.find((item) => Number(item.parentId) === Number(obj.id ))
+      if(findItem){
+        setCartItems(prev => prev.filter(item => Number(item.parentId) !== Number(obj.id)))
+        await axios.delete(`http://625e17e46c48e8761ba4f15d.mockapi.io/cart/${findItem.id}`)
       } else {
         const {data} = await axios.post('http://625e17e46c48e8761ba4f15d.mockapi.io/cart', obj)
         setCartItems(prev => [...prev, data])
       }
     } catch (error) {
-
+      alert('Ошибка при добавлении в корзину')
     }
 
   }
@@ -54,12 +56,16 @@ function App() {
   }
 
   const deleteItemFromCart = async (id) => {
-    setCartItems(prev => prev.filter(item => item.id !== id));
-    await axios.delete(`https://625e17e46c48e8761ba4f15d.mockapi.io/cart/${id}`)
+    try {
+      setCartItems(prev => prev.filter(item => item.id !== id));
+      await axios.delete(`https://625e17e46c48e8761ba4f15d.mockapi.io/cart/${id}`)
+    } catch (e) {
+      alert('Ошибка при удалении из корзины')
+    }
   }
 
   const itemIsAdded = (id) => {
-    return cartItems.some((obj) => Number(obj.id) === Number(id))
+    return cartItems.some((obj) => Number(obj.parentId) === Number(id))
   }
 
 
@@ -90,11 +96,25 @@ function App() {
 
 
   return (
-      <AppContext.Provider value={{ cartItems, favorites, items, itemIsAdded, setCartOpened, setCartItems}}>
+      <AppContext.Provider value={{
+        cartItems,
+        favorites,
+        items,
+        itemIsAdded,
+        setCartOpened,
+        setCartItems,
+        onAddToCart,
+        onAddToFavorites
+      }}>
         <div className="wrapper clear">
 
+          <Drawer
+              items={cartItems}
+              onDelete={deleteItemFromCart}
+              onClose={() => setCartOpened(false)}
+              opened={cartOpened}
+          />
 
-            {cartOpened && <Drawer items={cartItems} onDelete={deleteItemFromCart} onClose={() => setCartOpened(false)} />}
 
 
           <Header onClickCart={() => setCartOpened(true)}  />
@@ -117,6 +137,11 @@ function App() {
                      <Favorites
                        onAddToFavorites={onAddToFavorites}
                    />}/>
+
+            <Route exact
+                   path={"/orders"}
+                   element={
+                     <Orders />}/>
           </Routes>
 
 
